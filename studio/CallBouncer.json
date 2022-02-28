@@ -1,0 +1,374 @@
+{
+  "description": "CallBouncer",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "next": "split_1",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 60,
+          "y": -170
+        }
+      }
+    },
+    {
+      "name": "greeting_general",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "next": "split_2",
+          "event": "keypress"
+        },
+        {
+          "event": "speech"
+        },
+        {
+          "next": "nonemergency_options",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "default",
+        "number_of_digits": 1,
+        "speech_timeout": "auto",
+        "offset": {
+          "x": -10,
+          "y": 250
+        },
+        "loop": 2,
+        "finish_on_key": "#",
+        "say": "Thank you for calling. \n\nPlease press 1 if this is an emergency. \n\nIf this is not an emergency, please remain on the line.",
+        "language": "default",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 5
+      }
+    },
+    {
+      "name": "split_2",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "greeting_general",
+          "event": "noMatch"
+        },
+        {
+          "next": "emergency_confirm_2",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "emergency",
+              "arguments": [
+                "{{widgets.greeting_general.Digits}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.greeting_general.Digits}}",
+        "offset": {
+          "x": -120,
+          "y": 480
+        }
+      }
+    },
+    {
+      "name": "split_1",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "greeting_general",
+          "event": "noMatch"
+        },
+        {
+          "next": "greeting_mom",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "Mom",
+              "arguments": [
+                "{{trigger.call.From}}"
+              ],
+              "type": "equal_to",
+              "value": "MOMSNUMBER"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{trigger.call.From}}",
+        "offset": {
+          "x": 80,
+          "y": 10
+        }
+      }
+    },
+    {
+      "name": "connect_call",
+      "type": "connect-call-to",
+      "transitions": [
+        {
+          "event": "callCompleted"
+        },
+        {
+          "event": "hangup"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 640,
+          "y": 730
+        },
+        "caller_id": "{{contact.channel.address}}",
+        "noun": "number",
+        "to": "GOOGLEVOICENUMBER",
+        "timeout": 30
+      }
+    },
+    {
+      "name": "greeting_mom",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "connect_call",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 370,
+          "y": 250
+        },
+        "loop": 1,
+        "say": "Hi Mom, thanks for calling. I love you."
+      }
+    },
+    {
+      "name": "wait",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "connect_call",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 500,
+          "y": 470
+        },
+        "loop": 1,
+        "say": "Please wait while your call is connected."
+      }
+    },
+    {
+      "name": "emergency_confirm_2",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "next": "split_4",
+          "event": "keypress"
+        },
+        {
+          "event": "speech"
+        },
+        {
+          "next": "sorry_sms",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "number_of_digits": 2,
+        "speech_timeout": "auto",
+        "offset": {
+          "x": -180,
+          "y": 720
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "If this is a life-threatening emergency, please hang up and dial 911.\n\nOn a scale from 1-10, with 1 being least critical and 10 being most critical, how critical is this emergency?",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 5
+      }
+    },
+    {
+      "name": "split_4",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "sorry_sms",
+          "event": "noMatch"
+        },
+        {
+          "next": "wait",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "emergency",
+              "arguments": [
+                "{{widgets.emergency_confirm_2.Digits}}"
+              ],
+              "type": "matches_any_of",
+              "value": "8, 9, 10"
+            }
+          ]
+        },
+        {
+          "next": "sorry_sms",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "non-emergency",
+              "arguments": [
+                "{{widgets.emergency_confirm_2.Digits}}"
+              ],
+              "type": "matches_any_of",
+              "value": "1,2,3, 4, 5, 6, 7"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.emergency_confirm_2.Digits}}",
+        "offset": {
+          "x": -320,
+          "y": 980
+        }
+      }
+    },
+    {
+      "name": "nonemergency_options",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "next": "split_5",
+          "event": "keypress"
+        },
+        {
+          "event": "speech"
+        },
+        {
+          "next": "sorry_sms",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 190,
+          "y": 720
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "Please press 1 if you're calling about a vehicle's extended warranty.\nPress 2 if student loans are in default.\nPress 3 if you wish to obtain social security number, banking, or other personal information.\nPress 4 if for all other inquiries.",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 5
+      }
+    },
+    {
+      "name": "sorry_sms",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -480,
+          "y": 1290
+        },
+        "loop": 1,
+        "say": "Sorry, the party you are trying to reach cannot accept your call at this time. Please send a text message instead."
+      }
+    },
+    {
+      "name": "split_5",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "noMatch"
+        },
+        {
+          "next": "sorry_scammer",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "scammer",
+              "arguments": [
+                "{{widgets.nonemergency_options.Digits}}"
+              ],
+              "type": "equal_to",
+              "value": "1, 2, 3"
+            }
+          ]
+        },
+        {
+          "next": "sorry_sms",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "person",
+              "arguments": [
+                "{{widgets.nonemergency_options.Digits}}"
+              ],
+              "type": "equal_to",
+              "value": "4"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.nonemergency_options.Digits}}",
+        "offset": {
+          "x": 330,
+          "y": 990
+        }
+      }
+    },
+    {
+      "name": "sorry_scammer",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 570,
+          "y": 1240
+        },
+        "loop": 1,
+        "say": "You are a scammer, your call cannot be completed. Please add this phone number to your do not call list. Goodbye."
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
