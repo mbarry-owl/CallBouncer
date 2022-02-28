@@ -50,7 +50,7 @@
           "x": -10,
           "y": 250
         },
-        "loop": 2,
+        "loop": 1,
         "finish_on_key": "#",
         "say": "Thank you for calling. \n\nPlease press 1 if this is an emergency. \n\nIf this is not an emergency, please remain on the line.",
         "language": "default",
@@ -149,7 +149,7 @@
       "type": "say-play",
       "transitions": [
         {
-          "next": "connect_call",
+          "next": "wait",
           "event": "audioComplete"
         }
       ],
@@ -321,7 +321,7 @@
               "arguments": [
                 "{{widgets.nonemergency_options.Digits}}"
               ],
-              "type": "equal_to",
+              "type": "matches_any_of",
               "value": "1, 2, 3"
             }
           ]
