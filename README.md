@@ -1,4 +1,4 @@
-<img src="https://code.hq.twilio.com/storage/user/3252/files/888df400-989b-11ec-9e95-3732dae64dea" width="300">
+<img src="https://user-images.githubusercontent.com/60521939/156067564-a7076955-684b-4082-8ec2-081b33fd6eee.jpeg" width="300">
 
 
 # What is CallBouncer?
@@ -15,7 +15,7 @@ Features include:
 
 # Architecture
 
-<img src="https://code.hq.twilio.com/storage/user/3252/files/3b5d5280-989a-11ec-9374-2ea6550793ab" width="600">
+<img src="https://user-images.githubusercontent.com/60521939/156067561-7f49ff12-88cb-49ad-ad54-cd039ce792db.png" width="600">
 
 
 
